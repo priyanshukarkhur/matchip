@@ -4,23 +4,19 @@ import { createMiddlewareClient } from "@supabase/auth-helpers-nextjs";
 
 export async function middleware(req: NextRequest) {
   const res = NextResponse.next();
-
   const supabase = createMiddlewareClient({ req, res });
 
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
+  const { data: { session } } = await supabase.auth.getSession();
 
   const protectedRoutes = ["/dashboard", "/profile"];
+  const pathname = req.nextUrl.pathname;
 
-  const isProtected = protectedRoutes.some((route) =>
-    req.nextUrl.pathname.startsWith(route)
-  );
-
-  if (isProtected && !session) {
-    const redirectUrl = req.nextUrl.clone();
-    redirectUrl.pathname = "/login";
-    return NextResponse.redirect(redirectUrl);
+  if (protectedRoutes.some((r) => pathname.startsWith(r))) {
+    if (!session) {
+      const url = req.nextUrl.clone();
+      url.pathname = "/login";
+      return NextResponse.redirect(url);
+    }
   }
 
   return res;

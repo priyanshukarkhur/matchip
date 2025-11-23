@@ -1,6 +1,14 @@
-import { createClient } from "@supabase/supabase-js";
+"use client";
 
-export const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
+import { createBrowserSupabaseClient } from "@supabase/auth-helpers-nextjs";
+import type { SupabaseClient } from "@supabase/supabase-js";
+
+// `any` schema avoids the annoying "GenericSchema is not assignable" TS error
+let client: SupabaseClient<any> | null = null;
+
+export function getSupabaseBrowser(): SupabaseClient<any> {
+  if (!client) {
+    client = createBrowserSupabaseClient<any>();
+  }
+  return client;
+}

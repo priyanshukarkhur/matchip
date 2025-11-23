@@ -1,21 +1,28 @@
 "use client";
 
 import { useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { supabase } from "@/lib/supabaseClient";
+import { useSearchParams, useRouter } from "next/navigation";
+import { getSupabaseBrowser } from "@/lib/supabaseClient";
 
 export default function Callback() {
   const router = useRouter();
+  const params = useSearchParams();
+  const supabase = getSupabaseBrowser();
 
   useEffect(() => {
-    supabase.auth.onAuthStateChange((event) => {
-      if (event === "SIGNED_IN") {
-        router.push("/dashboard");
-      }
-    });
+    async function finish() {
+      const code = params.get("code");
 
-    supabase.auth.startAutoRefresh();
-  }, [router]);
+      if (!code) return router.push("/login");
+
+      const { error } = await supabase.auth.exchangeCodeForSession(code);
+
+      if (error) return router.push("/login");
+
+      router.push("/dashboard");
+    }
+    finish();
+  }, []);
 
   return <p>Completing sign-in...</p>;
 }
